@@ -1,0 +1,90 @@
+
+@page "/products"
+@rendermode InteractiveServer
+@using FashionManagement.Models
+@using FashionManagement.Services
+@using FashionManagement.Data
+@inject ProductService ProductService
+
+<PageTitle>Products</PageTitle>
+
+<h1>Products</h1>
+
+@if (products == null)
+{
+	<p>Loading Products</p>
+}
+else if (products.Count == 0)
+{
+	<p>No product have been added yet.</p>
+}
+else
+{
+	<div class="mb-3">
+		<label for="productSearch">Search Products:</label>
+    <input id="productSearch"  class="form-control"type="text"placeholder="Enter product name..."
+	@bind="searchText"
+	@bind:event="oninput"/>
+	</div>
+
+	
+	<table class="table">
+		<thead>
+			<tr>
+
+				
+				<th>Id</th>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Price</th>
+				<th>StockQuantity</th>     
+				<th>ImageUrl</th>
+			</tr>
+		</thead>
+
+		<tbody>@foreach (var product in FilteredProducts)
+			{
+				<tr>
+					
+					<td>@product.Id</td>
+					<td>@product.Name</td>
+					<td>@product.Description</td>
+					<td>@product.Price</td>
+					<td>@product.ImageUrl</td>
+					<td>@product.StockQuantity</td>
+			
+					<td>
+						<a href="/products/edit/@product.Id" class="btn btn-primary">Edit</a>
+						<a
+		 			href="@($"/products/details/{product.Id}")">
+					Details
+				</a>
+				<button class="btn btn-danger"
+                 @onclick="() => DeleteProduct(product.Id)">Delete</button>
+                 </td>
+				 </tr>
+			}
+
+		</tbody>
+	</table>
+	}
+	
+@code{
+	private List<Product>? products;
+
+	protected override async Task OnInitializedAsync()
+	{
+		products = await ProductService.GetProductsAsync();
+	}
+	private async Task DeleteProduct(int id)
+	{
+		await ProductService.DeleteProductAsync(id);
+
+		products = await ProductService.GetProductsAsync();
+	}
+
+	private string searchText = string.Empty;
+
+	private IEnumerable<Product> FilteredProducts => (products ?? new  List<Product>()).Where(p => string.IsNullOrEmpty(searchText) 
+	|| (p.Name??"").Contains(searchText, StringComparison.OrdinalIgnoreCase));
+}

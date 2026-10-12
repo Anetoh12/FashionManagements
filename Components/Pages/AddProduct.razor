@@ -1,0 +1,116 @@
+﻿
+@page "/products/add"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Forms
+@using FashionManagement.Services;
+@inject ProductService productService;
+@using FashionManagement.Models;
+@inject NavigationManager NavigationManager
+@inject IWebHostEnvironment Environment
+
+<PageTitle>Add Product</PageTitle>
+<h1>Add Product</h1>
+
+<EditForm Model="@product" OnValidSubmit="@SaveProduct" FormName="AddProductForm">
+	<DataAnnotationsValidator/>
+
+	<div class="mb=3"><label>product.Name</label>
+		<InputText class="form-control"
+		@bind-Value="product.Name"/>
+		<ValidationMessage For="@(() => product.Name)" />
+		</div>
+
+		<div class="mb-3">
+			<label>Description</label>
+			<InputText class="form-control"
+			@bind-Value="product.Description"/>
+		</div>
+
+		<div class="mb-3">
+			<label>Price</label>
+			<InputNumber class="form-control"
+			@bind-Value="product.Price"/>
+		</div>
+
+		<div class="mb-3">
+			<label>StockQuantity</label>
+			<InputNumber class="form-control"
+			@bind-Value="product.StockQuantity"/>
+		</div>
+       
+		<div class="mb-3">
+			<label>Product Image</label>
+			<InputFile OnChange="HandleImageSelected"/>
+		@if (!
+		   string.IsNullOrEmpty(imageError)
+		)
+		{
+			<div class="text-danger mt-2">
+				@imageError
+
+			</div>
+		}
+	</div>
+
+			<button type="submit"
+				class="btn btn-primary">SaveProduct</button>
+
+		<a href="/products"class="btn btn-secondary ms-2">Cancel</a>
+		</EditForm>
+
+@code {
+	private IBrowserFile? selectedImage;
+	private string? imageError;
+	[SupplyParameterFromForm]
+	private Product product { get; set; } = new();
+	private void HandleImageSelected(InputFileChangeEventArgs e)
+	{
+		imageError = null;
+		selectedImage = e.File;
+
+		var allowedExtensions = new[]
+		{
+			".jpg",
+			".jpeg",
+			".png",
+			".webp",
+		};
+		var extension = Path.GetExtension(selectedImage.Name).ToLowerInvariant();
+		if (! allowedExtensions.Contains(extension) )
+		{
+			imageError = "Please select a JPG, JPEG, PENG, or WEBP image.";
+			selectedImage = null;
+		}
+	}
+
+
+	private async Task SaveProduct()
+	{
+		if (selectedImage == null)
+		{
+			imageError = "Please select an image for the product.";
+			return;
+		}
+		var uploadsFolder = Path.Combine(Environment.WebRootPath, "uploads", "products");
+
+		Directory.CreateDirectory(uploadsFolder);
+
+		var extension = Path.GetExtension(selectedImage.Name);
+
+		var fileName = $"{Guid.NewGuid().ToString() + extension}";
+
+		var filePath = Path.Combine(uploadsFolder, fileName);
+
+		await using var stream = new FileStream(filePath, FileMode.Create);
+
+		await selectedImage.OpenReadStream(5 * 1024 * 1024).CopyToAsync(stream);
+
+		product.ImageUrl = "/uploads/products" + fileName;
+
+		await productService.AddProductAsync(product);
+
+		NavigationManager.NavigateTo("/products");
+
+	}
+	}
+	

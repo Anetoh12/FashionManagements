@@ -1,0 +1,86 @@
+﻿@page "/products/edit/{id:int}"
+@rendermode InteractiveServer
+@using FashionManagement.Models;
+@using Microsoft.AspNetCore.Components.Forms;
+@using FashionManagement.Services;
+@inject ProductService productService
+@inject NavigationManager navigation
+
+<h3>EditProduct</h3>
+
+@if (product == null)
+{
+	<p>Loading...</p>
+}
+else
+{
+	<EditForm Model="@product" OnSubmit="UpdateProduct" FormName="EditProductForm">
+
+		<DataAnnotationsValidator/>
+
+
+		<div class="mb-3">
+			<label>Product Name</label>
+			<InputText
+				class="form-control"
+				@bind-Value="product.Name"/>
+				</div>
+
+				<div class="mb-3">
+					<label>Price</label>
+					<InputNumber class="form-control"
+					@bind-Value="product.Price"/>
+					</div>
+
+					<div class="mb-3">
+						<label>
+							StockQuantity
+						</label>
+						<InputNumber class="form-control"
+						@bind-Value="product.StockQuantity"></InputNumber>
+					</div>
+
+					<div class="mb-3">
+						<label>Image URL</label>
+						<InputText class="form-control"
+						@bind-Value="product.ImageUrl"/>
+					</div>
+
+					<div class="mb-3">
+						<lebel>Description</lebel>
+						<InputTextArea class="form-control"
+						@bind-Value="product.Description"/>
+					</div>
+
+					<button type="submit" class="btn btn-success">
+						Save Changes
+					</button>
+
+					
+				
+			</EditForm>
+}
+
+@code {
+	[Parameter]
+	public int id { get; set;}
+
+	private Product? product;
+
+	protected override async Task OnInitializedAsync()
+	{
+		product = await productService.GetProductByIdAsync(id);
+	}
+	private async Task UpdateProduct()
+	{
+		Console.WriteLine("UPDATE PRODUCT CANCEL");
+		await
+		productService.UpdateProductAsync(product!);
+		Console.WriteLine("PRODUCT UPDATED");
+		navigation.NavigateTo("/products");
+	}
+	private void Cancel()
+	{
+		navigation.NavigateTo("/products");
+	}
+}

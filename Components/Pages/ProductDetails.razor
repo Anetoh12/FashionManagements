@@ -1,0 +1,59 @@
+﻿@page "/products/details/{id:int}"
+
+@using FashionManagement.Models
+@using FashionManagement.Services
+@inject ProductService ProductService
+
+<PageTitle>Product Details</PageTitle>
+
+<h1>Product Details</h1>
+
+@if (product == null)
+{
+	<p>Loading Product</p>
+
+}
+else
+{
+	<div class="card">
+		<div class="card-body">
+			<h3>@product.Name</h3>
+			<p>
+				<strong>Description:</strong>
+				@product.Description
+			</p>
+			<p>
+			<strong>Stock:</strong>
+
+			@product.StockQuantity
+
+			</p>
+			@if(! 
+			string.IsNullOrWhiteSpace(product.ImageUrl))
+			{
+				<p>
+					<strong>Image:</strong>
+
+				</p>
+				<imgsrc="@product.ImageUrl"
+				alt="@product.Name"
+				width="250"/>
+			}
+
+			<a href="/products"
+			class="btn btn-secondary">
+			back to Products
+		</a>
+		</div>
+	</div>
+}
+@code{
+	[Parameter]
+	public int id {get;set;}
+
+	private Product? product;
+	protected override async Task OnInitializedAsync()
+	{
+		product = await ProductService.GetProductByIdAsync(id);
+	}
+}
