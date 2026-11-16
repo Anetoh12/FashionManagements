@@ -73,7 +73,7 @@
 			".jpg",
 			".jpeg",
 			".png",
-			".webp",
+			".webp ",
 		};
 		var extension = Path.GetExtension(selectedImage.Name).ToLowerInvariant();
 		if (! allowedExtensions.Contains(extension) )
@@ -91,7 +91,7 @@
 			imageError = "Please select an image for the product.";
 			return;
 		}
-		var uploadsFolder = Path.Combine(Environment.WebRootPath, "uploads", "products");
+		var uploadsFolder = Path.Combine(Environment.WebRootPath,"uploads","products");
 
 		Directory.CreateDirectory(uploadsFolder);
 
@@ -103,9 +103,9 @@
 
 		await using var stream = new FileStream(filePath, FileMode.Create);
 
-		await selectedImage.OpenReadStream(5 * 1024 * 1024).CopyToAsync(stream);
+		await selectedImage.OpenReadStream(10 * 1024 * 1024).CopyToAsync(stream);
 
-		product.ImageUrl = "/uploads/products" + fileName;
+		product.ImageUrl = $"/uploads/products/{fileName}";
 
 		await productService.AddProductAsync(product);
 

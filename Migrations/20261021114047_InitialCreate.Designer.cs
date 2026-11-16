@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FashionManagement.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261008190250_InitialCreate")]
+    [Migration("20261021114047_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

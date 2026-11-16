@@ -26,18 +26,19 @@ else
 			<strong>Stock:</strong>
 
 			@product.StockQuantity
-
-			</p>
+			  
+			</p> 
 			@if(! 
 			string.IsNullOrWhiteSpace(product.ImageUrl))
 			{
 				<p>
-					<strong>Image:</strong>
+					<strong>Product Image:</strong>
 
 				</p>
-				<imgsrc="@product.ImageUrl"
+				<img src="@($"/{product.ImageUrl.TrimStart('/')}")"
 				alt="@product.Name"
-				width="250"/>
+				style="width: 250px; height: 250px; object-fit: contain; display: block;"
+				onerror="this.style.display='none'"/>
 			}
 
 			<a href="/products"

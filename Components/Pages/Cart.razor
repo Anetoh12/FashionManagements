@@ -1,0 +1,119 @@
+﻿@rendermode InteractiveServer
+@page "/cart"
+@inject FashionManagement.Services.CartService CartSvc
+@using FashionManagement.Cart
+@using FashionManagement.Services
+
+
+<PageTitle>Shopping Cart </PageTitle>
+
+<div class="container my-5">
+	<h1>My Shopping Cart</h1>
+	<p>Review your items before checking out</p>
+	@if (CartSvc.Items.Count == 0)
+	{
+		<div class="alart alart-info">
+			your cart is empty.Visit our collection to add something you love.
+</div>
+
+<a href="/products" class="btn btn-primary">Continue Shopping</a>
+	}
+	else
+	{
+		<div class="table-responsive">
+			<table class="table align-middle">
+				<thead>
+					<tr>
+						<th>Product</th>
+						<th>Price</th>
+						<th>Stock Quantity</th>
+						<th>Subtotal</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var item in CartSvc.Items)
+					{
+						<tr @key="item.ProductId">
+							<td>
+								<div class="d-flex align-items-center gap-3">
+									<NavLink class="nav-link" href="cart">
+										<span class="bi bi-cart-fill-nav-menu" aria-hidden="true"></span>
+									</NavLink>
+									@if(!string.IsNullOrWhiteSpace(item.ProductImageUrl))
+									{
+										<img src="@item.ProductImageUrl"
+										alt="@item.ProductName"
+										style="width: 70px;height:80px;object-fit:cover;"/>
+									}
+									<span>@item.ProductName</span>
+								</div>
+								<td>@item.Price.ToString("C",new System.Globalization.CultureInfo("en-US"))</td>
+								<td>
+									<div class="d-flex align-items-center gap-2">
+										<button class="btn btn-outline-secondary btn-sm"
+										@onclick="() => DecreaseQuantity(item.ProductId)"> - </button>
+
+										<span>@item.Quantity</span>
+
+										<button class="btn btn-outline-secondary btn-sm"
+
+										@onclick="() => IncreaseQuantity(item.ProductId)"> + </button>
+									</div>
+								</td>
+								<td>@item.SubTotal.ToString("C", new System.Globalization.CultureInfo("en-US"))</td
+								<td>
+									<button class="btn btn-danger btn-sm"
+									@onclick="() => RemoveItem(item.ProductId)"> Remove </button>
+								</td>
+						       </td>
+							   </tr>
+
+					}
+				</tbody>
+			</table>
+		</div>
+
+		<div class="text-end mt-4">
+			<h4>Total items:@CartSvc.TotalItems</h4>
+			<h3>Total:@CartSvc.TotalPrice.ToString("C", new System.Globalization.CultureInfo("en-US"))</h3>
+
+			<button class="btn btn-outline-danger me-2"
+			@onclick="ClearCart">Clear Cart</button>
+
+			<a href="/products" class="btn btn-primary">Continue Shopping</a>
+
+		</div>
+	}
+
+</div>
+
+@code
+{
+	private void IncreaseQuantity(int productId)
+	{
+		var item = CartSvc.Items.FirstOrDefault(x => x.ProductId == productId);
+		if (item != null)
+		{
+			CartSvc.UpdateQuantity(productId, item.Quantity + 1);
+		}
+	}
+	private void DecreaseQuantity(int productId)
+	{
+		var item = CartSvc.Items.FirstOrDefault(x => x.ProductId == productId);
+		if (item != null && item.Quantity > 1)
+		{
+			CartSvc.UpdateQuantity(productId, item.Quantity - 1);
+		}
+	}
+
+	private void RemoveItem(int productId)
+	{
+		CartSvc.RemoveFromCart(productId);
+
+	}
+	private void ClearCart()
+	{
+		CartSvc.ClearCart();
+	}
+}

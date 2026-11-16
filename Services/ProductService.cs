@@ -51,8 +51,9 @@ namespace FashionManagement.Services
             if (product != null)
             {
                 _context.Products.Remove(product);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); 
             }
+            
         }
     }
 }

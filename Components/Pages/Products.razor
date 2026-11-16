@@ -1,86 +1,155 @@
 
 @page "/products"
+@inject CartService CartSvc
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 @using FashionManagement.Models
 @using FashionManagement.Services
-@using FashionManagement.Data
 @inject ProductService ProductService
 
-<PageTitle>Products</PageTitle>
 
-<h1>Products</h1>
+<PageTitle>Products | Fashion Management</PageTitle>
 
-@if (products == null)
-{
-	<p>Loading Products</p>
-}
-else if (products.Count == 0)
-{
-	<p>No product have been added yet.</p>
-}
-else
-{
-	<div class="mb-3">
-		<label for="productSearch">Search Products:</label>
-    <input id="productSearch"  class="form-control"type="text"placeholder="Enter product name..."
-	@bind="searchText"
-	@bind:event="oninput"/>
+
+<div class="products-page">
+
+	<div class="products-heading">
+
+		<h1>Our Collection</h1>
+		<p>Discover your next favorite style.</p>
+		</div>
+	@if (products == null)
+	{
+		<p>Loading products...</p>
+	}
+	else if (products.Count == 0)
+	{
+		<p>No product have been added yet.</p>
+		<a href="/products/add" class="products-edit">Add your product</a>
+	}
+	else
+	{
+		<div class="products-toolbar">
+			<input id="productSearch"
+				class="products-search" type="text"placeholder="Search Products by name..."
+				@bind="searchText"
+				@bind:event="oninput"/>
+
+				<a href="/products/add" class="products-edit"> + Add Product</a>
+		</div>
+		@if (! FilteredProducts.Any())
+		{
+			<p> No product match your search</p>
+		}
+		else
+		{
+			<div class="product-grid">
+				@foreach (var product in FilteredProducts)
+				{
+					<div class="product-card">
+						@if (! string.IsNullOrWhiteSpace(product.ImageUrl))
+						{
+							<img class="product-image" src="@product.ImageUrl" alt="@product.Name"loading="lazy"/>
+						}
+						else
+						{
+							<div class="product-image-placeholder">
+								No image available
+							</div>
+						}
+
+						<div class="product-details">
+							<h2 class="product-name">
+								@product.Name
+							</h2>
+
+							<p class="product-price"> $@product.Price.ToString("N2")
+								<a href="/cart" class="btn btn-primary">
+									View Cart (@CartSvc.TotalItems)
+									</a>
+							</p>
+								<button class="btn btn-primary" @onclick="() => AddProductToCart(product)">Add to Cart</button>
+								@if(! string.IsNullOrWhiteSpace(CartMessage))
+								{
+									<p role="Status">@CartMessage</p>
+								}
+								<div class="product-stock">
+								@if (product.StockQuantity > 5)
+								{
+									<span class="stock-available">In Stock
+										(@product.StockQuantity)
+									</span>
+								}
+								else if (product.StockQuantity > 0)
+								{
+									<span class="stock-low">Low Stock
+										(@product.StockQuantity)
+									</span>
+								}
+								else
+								{
+									<span class="stock-empty">Out of Stock</span>
+								}
+							</div>
+
+							 <p>@product.Description</p>
+
+							 <div class="product-actions">
+								 <a href="@($"/products/edit/{product.Id}")"
+								 class="product-edit">Edit</a>
+
+								 <a href="@($"/products/details/{product.Id}")"
+								 class="product-edit">View Details</a>
+
+								 <button type="button" 
+									 class="product-delete" @onclick="() => DeleteProduct(product.Id)">
+									 Delete
+								 </button>
+								 </div>
+						</div>
+					</div>
+				}
+			</div>
+		}
+	}
 	</div>
 
-	
-	<table class="table">
-		<thead>
-			<tr>
-
-				
-				<th>Id</th>
-				<th>Name</th>
-				<th>Description</th>
-				<th>Price</th>
-				<th>StockQuantity</th>     
-				<th>ImageUrl</th>
-			</tr>
-		</thead>
-
-		<tbody>@foreach (var product in FilteredProducts)
-			{
-				<tr>
-					
-					<td>@product.Id</td>
-					<td>@product.Name</td>
-					<td>@product.Description</td>
-					<td>@product.Price</td>
-					<td>@product.ImageUrl</td>
-					<td>@product.StockQuantity</td>
-			
-					<td>
-						<a href="/products/edit/@product.Id" class="btn btn-primary">Edit</a>
-						<a
-		 			href="@($"/products/details/{product.Id}")">
-					Details
-				</a>
-				<button class="btn btn-danger"
-                 @onclick="() => DeleteProduct(product.Id)">Delete</button>
-                 </td>
-				 </tr>
-			}
-
-		</tbody>
-	</table>
-	}
-	
 @code{
+	private string? CartMessage;
 	private List<Product>? products;
 
 	protected override async Task OnInitializedAsync()
 	{
 		products = await ProductService.GetProductsAsync();
 	}
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await CartSvc.InitializeAsync();
+			StateHasChanged();
+		}
+	}
+
 	private async Task DeleteProduct(int id)
 	{
 		await ProductService.DeleteProductAsync(id);
 
 		products = await ProductService.GetProductsAsync();
+	}
+	private void AddProductToCart(FashionManagement.Models.Product product)
+	{
+		try
+		{
+			CartSvc.AddToCart(product);
+			CartMessage = $"{product.Name} has been added to your cart.";
+
+			Navigation.NavigateTo("/cart");
+		}
+		catch (InvalidOperationException ex)
+		{
+			CartMessage = ex.Message;
+		}
 	}
 
 	private string searchText = string.Empty;

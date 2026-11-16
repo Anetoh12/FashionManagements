@@ -11,6 +11,7 @@ builder.Services.AddScoped<ProductService>();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddScoped<FashionManagement.Services.CartService>();
 
 var app = builder.Build();
 
@@ -31,3 +32,4 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+app.UseStaticFiles();
